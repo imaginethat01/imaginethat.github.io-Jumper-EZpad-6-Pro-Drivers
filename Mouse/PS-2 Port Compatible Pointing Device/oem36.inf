@@ -1,0 +1,163 @@
+;tpfilter.inf
+;
+; Installation inf for the  TouchPad that needs flitering adapter.
+;
+; (c) Copyright 2012 
+;
+
+[Version]
+Signature="$Windows NT$"
+Provider=%TP%
+ClassGUID={4D36E96F-E325-11CE-BFC1-08002BE10318}
+Class=Mouse
+; Uncomment the following line when you have a valid catalog file.
+;         If you use bogus catalog file installation will fail.
+CatalogFile=tpfilter.cat
+DriverVer=09/30/2015,2.4.2.2
+
+[DestinationDirs]
+DefaultDestDir   = 12 
+tpfilter.CopyDriver     = 12 
+
+;
+; Driver information
+;
+
+[Manufacturer]
+%TP%   = TP.Mfg, NTia64, NTamd64
+
+[TP.Mfg]
+%PS2.CompatibleDevice% = tpfilter, ACPI\MSFT0003
+%PS2.CompatibleDevice% = tpfilter, *PNP0F13, *PNP0F03, *PNP0F12, *PNP0F0B, *PNP0F0E
+
+[TP.Mfg.NTia64]
+%PS2.CompatibleDevice% = tpfilteria64, ACPI\MSFT0003
+%PS2.CompatibleDevice% = tpfilteria64, *PNP0F13, *PNP0F03, *PNP0F12, *PNP0F0B, *PNP0F0E
+
+[TP.Mfg.NTamd64]
+%PS2.CompatibleDevice% = tpfilteramd64, ACPI\MSFT0003
+%PS2.CompatibleDevice% = tpfilteramd64, *PNP0F13, *PNP0F03, *PNP0F12, *PNP0F0B, *PNP0F0E
+;
+; General installation section
+;
+
+[tpfilter]
+; perform port related actions from msmouse.inf
+Include=msmouse.inf
+Needs=PS2_Inst
+; Copy the driver over
+CopyFiles=tpfilter.CopyDriver
+
+[tpfilteria64]
+; perform port related actions from msmouse.inf
+Include=msmouse.inf
+Needs=PS2_Inst
+; Copy the driver over
+CopyFiles=tpfilter.CopyDriver
+
+[tpfilteramd64]
+; perform port related actions from msmouse.inf
+Include=msmouse.inf
+Needs=PS2_Inst
+; Copy the driver over
+CopyFiles=tpfilter.CopyDriver
+
+;
+; File sections
+;
+
+[tpfilter.CopyDriver]
+tpfilter.sys
+
+;
+; Service Installation
+;
+
+[tpfilter.Services]
+AddService = tpfilter,  , tpfilter_Service_Inst
+; Install the port driver and mouclass from msmouse.inf
+Include=msmouse.inf
+Needs=PS2_Inst.Services
+
+[tpfilteria64.Services]
+AddService = tpfilter,  , tpfilter_Service_Inst
+; Install the port driver and mouclass from msmouse.inf
+Include=msmouse.inf
+Needs=PS2_Inst.Services
+
+[tpfilteramd64.Services]
+AddService = tpfilter,  , tpfilter_Service_Inst
+; Install the port driver and mouclass from msmouse.inf
+Include=msmouse.inf
+Needs=PS2_Inst.Services
+
+[tpfilter_Service_Inst]
+DisplayName    = %tpfilter.SvcDesc%
+ServiceType    = 1                  ; SERVICE_KERNEL_DRIVER
+StartType      = 3                  ; SERVICE_DEMAND_START
+ErrorControl   = 0                  ; SERVICE_ERROR_IGNORE
+LoadOrderGroup = Pointer Port
+ServiceBinary  = %12%\tpfilter.sys
+
+
+[tpfilter.HW]
+; Add the device upper filter
+AddReg = tpfilter.HW.AddReg
+; run the directives need by the port driver
+Include=msmouse.inf
+Needs=PS2_Inst.HW
+
+[tpfilteria64.HW]
+; Add the device upper filter
+AddReg = tpfilter.HW.AddReg
+; run the directives need by the port driver
+Include=msmouse.inf
+Needs=PS2_Inst.HW
+
+[tpfilteramd64.HW]
+; Add the device upper filter
+AddReg = tpfilter.HW.AddReg
+; run the directives need by the port driver
+Include=msmouse.inf
+Needs=PS2_Inst.HW
+
+
+
+[tpfilter.HW.AddReg]
+HKR,,"UpperFilters",0x00010000,"tpfilter"
+
+;
+; Source file information
+;
+
+; use [SourceDisksNames.x86] for x86 only installs
+; use [SourceDisksNames.alpha] for alpha only installs
+
+[SourceDisksNames]
+1 = %DiskId1%,,,
+
+[SourceDisksFiles]
+tpfilter.sys = 1,,
+
+
+[Strings]
+
+;
+; Non-Localizable Strings
+;
+
+REG_SZ         = 0x00000000
+REG_MULTI_SZ   = 0x00010000
+REG_EXPAND_SZ  = 0x00020000
+REG_BINARY     = 0x00000001
+REG_DWORD      = 0x00010001
+SERVICEROOT    = "System\CurrentControlSet\Services"
+
+;
+; Localizable Strings
+;
+
+DiskId1 = "TP TouchPad Driver Installation Disk "
+TP= "TP"
+tpfilter.SvcDesc="TouchPad"
+PS2.CompatibleDevice = "PS/2 Port Compatible Pointing Device"

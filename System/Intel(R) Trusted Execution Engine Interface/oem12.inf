@@ -1,0 +1,234 @@
+;*******************************************************************************
+;*                                                                            **
+;*                     I N T E L   P R O P R I E T A R Y                      **
+;*                                                                            **
+;*   COPYRIGHT (c) 2003-2016 BY INTEL CORPORATION. ALL RIGHTS RESERVED.  NO   **
+;*   PART  OF  THIS  PROGRAM OR PUBLICATION MAY BE REPRODUCED, TRANSMITTED,   **
+;*   TRANSCRIBED, STORED IN A RETRIEVAL  SYSTEM,  OR  TRANSLATED  INTO  ANY   **
+;*   LANGUAGE OR COMPUTER LANGUAGE IN ANY FORM OR BY ANY MEANS, ELECTRONIC,   **
+;*   MECHANICAL, MAGNETIC, OPTICAL, CHEMICAL, MANUAL, OR OTHERWISE, WITHOUT   **
+;*   THE PRIOR WRITTEN PERMISSION OF :                                        **
+;*                                                                            **
+;*                             INTEL CORPORATION                              **
+;*                                                                            **
+;*                          2200 MISSION COLLEGE BLVD                         **
+;*                                                                            **
+;*                     SANTA CLARA, CALIFORNIA 95052-8119                     **
+;*                                                                            **
+;*******************************************************************************
+;
+;
+; File Name: TXEI.inf
+; Install information file for TXEI Driver
+;--------- Version Section ---------------------------------------------------
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System
+ClassGUID={4d36e97d-e325-11ce-bfc1-08002be10318}
+Provider=%Provider%
+DriverVer=07/23/2016,3.0.0.1115
+CatalogFile=txei.cat
+
+[ControlFlags]
+; Pnp drivers should not be installable via non-PnP hardware dialogs
+ExcludeFromSelect = *
+
+;--------- DestinationDirs Section -------------------------------------------
+
+[DestinationDirs]
+DefaultDestDir = 12
+;TEE_DDI_CoInstaller_CopyFiles = 11
+
+;--------- SourceDiskNames and SourceDiskFiles Section -----------------------
+; These sections identify source disks and files for installation.
+
+[SourceDisksNames]
+1=%Location%,
+
+[SourceDisksFiles.x86]
+
+TeeDriverW8.sys=1,.\x86
+;wdfcoinstaller01011.dll=1,.\x86
+
+[SourceDisksFiles.amd64]
+TeeDriverW8x64.sys=1,.\x64
+;wdfcoinstaller01011.dll=1,.\x64
+
+;--------- Manufacturer and Models Sections ----------------------------------
+
+[Manufacturer]
+%MfgName% = Intel, NTx86.6.2, NTamd64.6.2
+
+[Intel.NTx86.6.2]
+; DisplayName               Section           DeviceId
+%TEE_DeviceDesc%=TEE_DDI_W8, PCI\VEN_8086&DEV_5A9A  		;BXT-P
+
+
+[Intel.ntamd64.6.2]
+; DisplayName               Section           DeviceId
+%TEE_DeviceDesc%=TEE_DDI_W8_x64, PCI\VEN_8086&DEV_5A9A		;BXT-P
+
+
+[Intel]
+; Empty section, so this INF does not support Windows 2000.
+
+;---------- DDInstall Sections -----------------------------------------------
+; --------- Windows NT -----------------
+
+[TEE_DDI_W8]
+CopyFiles=TEE_Files_Driver_W8
+
+[TEE_DDI_W8_x64]
+CopyFiles=TEE_Files_Driver_W8_x64
+
+[TEE_DDI_W8.Services]
+AddService = MEI, %FLG_ADDREG_NOCLOBBER%, TEE_Service_W8, win8_32.EventLog
+
+[TEE_DDI_W8_x64.Services]
+AddService = MEIx64, %FLG_ADDREG_NOCLOBBER%, TEE_Service_W8_X64, win8_x64.EventLog
+
+; --------- Files ----------------------
+[TEE_Files_Driver_W8]
+TeeDriverW8.sys
+
+[TEE_Files_Driver_W8_x64]
+TeeDriverW8x64.sys
+
+[TEE_NT_AddReg.Security]
+"D:P(A;CI;GA;;;BA)(A;CI;GA;;;SY)(A;CI;GA;;;LS)"
+
+[TEE_DDI_W8.HW]
+AddReg=TEE__NT_HW_AddReg
+
+[TEE_DDI_W8_x64.HW]
+AddReg=TEE__NT_HW_AddReg
+
+[TEE__NT_HW_AddReg]
+HKR,,DeviceCharacteristics,0x10001,0x100
+HKR,,Security,,"D:P(A;;GA;;;BA)(A;;GA;;;SY)(A;CI;GA;;;LS)"
+HKR, Interrupt Management,, 0x00000010
+HKR, Interrupt Management\MessageSignaledInterruptProperties,, 0x00000010
+HKR, Interrupt Management\MessageSignaledInterruptProperties, MSISupported, 0x00010001, 1
+
+; --------- Service ----------------------
+[TEE_Service_W8]
+DisplayName    = %TEE_SvcDesc%
+ServiceType    = %SERVICE_KERNEL_DRIVER%
+StartType      = %SERVICE_DEMAND_START%
+ErrorControl   = %SERVICE_ERROR_NORMAL%
+ServiceBinary  = %12%\TeeDriverW8.sys
+LoadOrderGroup = Extended Base
+AddReg=TEE_NT_AddReg
+
+[TEE_Service_W8_X64]
+DisplayName    = %TEE_SvcDesc%
+ServiceType    = %SERVICE_KERNEL_DRIVER%
+StartType      = %SERVICE_DEMAND_START%
+ErrorControl   = %SERVICE_ERROR_NORMAL%
+ServiceBinary  = %12%\TeeDriverW8x64.sys
+LoadOrderGroup = Extended Base
+AddReg=TEE_NT_AddReg
+
+
+; --------- Registry ----------------------
+
+[TEE_NT_AddReg]
+;reg-root,[subkey],[value-entry-name],[flags],[value]
+HKR,Parameters,WdTimerTic,%REG_DWORD%,120
+HKR,Parameters,BusClients,%REG_MULTI_SZ%,%NCI_GUID%,%SPIER_GUID%
+
+
+;-----------------------------------------------------------------------------
+; Common base for all drivers for Eventlog and TextModeFlags
+;
+[win8_32.EventLog]
+AddReg = win8_32.AddEventLog.reg
+[win8_32.AddEventLog.reg]
+HKR, , EventMessageFile, 0x00020000, %EventLogMessageDllPath_win8_32%
+HKR, , TypesSupported,   0x00010001, 7
+
+[win8_x64.EventLog]
+AddReg = win8_x64.AddEventLog.reg
+
+[win8_x64.AddEventLog.reg]
+HKR, , EventMessageFile, 0x00020000, %EventLogMessageDllPath_win8_x64%
+HKR, , TypesSupported,   0x00010001, 7
+
+
+;
+;--- TEE_DDI Coinstaller installation ------
+;
+;[TEE_DDI.CoInstallers]
+;AddReg=TEE_DDI_CoInstaller_AddReg
+;CopyFiles=TEE_DDI_CoInstaller_CopyFiles
+
+;[TEE_DDI_x64.CoInstallers]
+;AddReg=TEE_DDI_CoInstaller_AddReg
+;CopyFiles=TEE_DDI_CoInstaller_CopyFiles
+
+;[TEE_DDI_CoInstaller_AddReg]
+;HKR,,CoInstallers32,0x00010000, "WdfCoInstaller01011.dll,WdfCoInstaller"
+
+;[TEE_DDI_CoInstaller_CopyFiles]
+;WdfCoInstaller01011.dll
+
+[TEE_DDI.Wdf]
+KmdfService =  MEI, TEEDriver_wdfsect
+
+[TEE_DDI_x64.Wdf]
+KmdfService =  MEIx64, TEEDriver_wdfsect
+
+[TEEDriver_wdfsect]
+KmdfLibraryVersion = 1.11
+
+;--------- Strings Section ---------------------------------------------------
+
+[Strings]
+;---------------------------------------------------------------------------------------------------
+EventLogMessageDllPath_win8_32	= "%SystemRoot%\System32\netevent.dll;%SystemRoot%\System32\drivers\TeeDriverW8.sys"
+EventLogMessageDllPath_win8_x64 = "%SystemRoot%\System32\netevent.dll;%SystemRoot%\System32\drivers\TeeDriverW8x64.sys"
+
+Provider = "Intel"
+MfgName = "Intel"
+TEE_DeviceDesc = "Intel(R) Trusted Execution Engine Interface"
+TEE_SvcDesc = "Intel(R) Trusted Execution Engine Interface"
+Location = "Intel(R) Trusted Execution Engine Interface"
+
+REG_SZ                      = 0x00000000
+REG_MULTI_SZ                = 0x00010000
+REG_EXPAND_SZ               = 0x00020000
+REG_BINARY                  = 0x00000001
+REG_DWORD                   = 0x00010001
+REG_NONE                    = 0x00020001
+
+SERVICE_KERNEL_DRIVER       = 0x00000001
+SERVICE_FILE_SYSTEM_DRIVER  = 0x00000002
+SERVICE_ADAPTER             = 0x00000004
+SERVICE_RECOGNIZER_DRIVER   = 0x00000008
+
+SERVICE_BOOT_START          = 0x0
+SERVICE_SYSTEM_START        = 0x1
+SERVICE_AUTO_START          = 0x2
+SERVICE_DEMAND_START        = 0x3
+SERVICE_DISABLED            = 0x4
+
+SERVICE_ERROR_IGNORE        = 0x00000000
+SERVICE_ERROR_NORMAL        = 0x00000001
+SERVICE_ERROR_SEVERE        = 0x00000002
+SERVICE_ERROR_CRITICAL      = 0x00000003
+
+FLG_ADDREG_NOCLOBBER        = 0x00000002
+FLG_ADDREG_DELVAL           = 0x00000004
+FLG_ADDREG_APPEND           = 0x00000008
+FLG_ADDREG_KEYONLY          = 0x00000010
+FLG_ADDREG_OVERWRITEONLY    = 0x00000020
+FLG_ADDREG_64BITKEY         = 0x00001000
+FLG_ADDREG_KEYONLY_COMMON   = 0x00002000
+FLG_ADDREG_32BITKEY         = 0x00004000
+
+SPSVCINST_STOPSERVICE			= 0x00000200
+SPSVCINST_DELETEEVENTLOGENTRY	= 0x00000004	
+NCI_GUID = "{27B961DB-3057-49BB-BD0D-ACA9FD8FF697}"
+SPIER_GUID = "{2A39291F-5551-482F-99CB-9E2274978CA8}"
+
